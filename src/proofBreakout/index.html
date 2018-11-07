@@ -1,0 +1,279 @@
+<canvas id="proof-party"></canvas>
+<style>#proof-party{background:rgba(220,220,220, .5);display: none;left: 0px;position: fixed;top: 0px;z-index: 99999999;background}</style>
+
+<script>
+var VERSION = '1.2.1'
+var canvas
+var ctx
+
+var playing = false
+
+var x
+var y
+var dx
+var dy
+var ballRadius = 17
+var initBallSpeed = 5
+var ballSpeed
+var ballImg = new Image()
+
+
+var paddleHeight = 55
+var paddleWidth = 230
+var paddleX
+var paddleBottomMargin = 30
+var paddleSpeed = 7.5
+var paddleImg = new Image()
+
+var rightPressed = false
+var leftPressed = false
+
+var bricks = []
+var brickRowCount = 7
+var brickColumnCount = 12
+var brickWidth
+var brickHeight
+var brickPadding = 20
+var brickOffsetTop = 100
+var brickOffsetLeft = 50
+
+var bricksLeft
+var level = 0
+var score = 0
+var lives = 2
+
+color1 = '#0095f7'
+
+function init () {
+	console.log(VERSION)
+  canvas = document.getElementById('proof-party')
+  canvas.height = window.innerHeight - 20
+  canvas.width = window.innerWidth - 20
+  canvas.style.display = 'block'
+  ctx = canvas.getContext('2d')
+
+  ballImg.src = 'https://uploads-ssl.webflow.com/5a8b5a2ff8eb19000164d5e7/5a95e3c60f177000014a6b83_ball.png'
+  paddleImg.src = 'https://uploads-ssl.webflow.com/5a8b5a2ff8eb19000164d5e7/5a9614b341e04900018aaa4c_highScore.png'
+
+  paddleX = (canvas.width - paddleWidth) / 2
+
+  brickHeight = canvas.height / 40
+  brickWidth = canvas.width / brickColumnCount - brickPadding - (brickOffsetLeft * 2 / brickColumnCount)
+
+  registerKeys()
+  start()
+  update()
+}
+
+function start () {
+	level++
+	ballSpeed = initBallSpeed + (level / 2)
+	resetBall()
+  setupBricks()
+  playing = true
+}
+
+function stop () {
+  playing = false
+  alert (`Game over.\nYour score is ${score}`)
+	document.location.reload()
+}
+
+function resetBall () {
+	x = canvas.width / 2
+  y = canvas.height - paddleHeight - paddleBottomMargin - 5
+  dx = ballSpeed
+	dy = -ballSpeed
+	paddleX = (canvas.width-paddleWidth) / 2;
+}
+
+function loseLife () {
+	if(lives-- == 0) {
+		stop()
+	} else {
+		resetBall()
+	}
+}
+
+function end () {
+  stop()
+  canvas.remove()
+}
+
+function registerKeys () {
+  // disable arrow key scrolling
+  window.addEventListener('keydown', function (e) {
+    if ([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+      e.preventDefault()
+    }
+  }, false)
+
+  // paddle control
+  document.addEventListener('keydown', keyDownHandler, false)
+  document.addEventListener('keyup', keyUpHandler, false)
+}
+
+function keyDownHandler (e) {
+  if (e.keyCode === 39) {
+    rightPressed = true
+  } else if (e.keyCode === 37) {
+    leftPressed = true
+  } else if (e.keyCode === 27) {
+  	// press esc
+    stop()
+  }
+}
+
+function keyUpHandler (e) {
+  if (e.keyCode === 39) {
+    rightPressed = false
+  } else if (e.keyCode === 37) {
+    leftPressed = false
+  }
+}
+
+function setupBricks () {
+  for (var c = 0; c < brickColumnCount; c++) {
+    bricks[c] = []
+    for (var r = 0; r < brickRowCount; r++) {
+      bricks[c][r] = {x: 0, y: 0, status: 1}
+    }
+  }
+  bricksLeft = brickRowCount * brickColumnCount
+}
+
+function drawBricks () {
+  for (var c = 0; c < brickColumnCount; c++) {
+    for (var r = 0; r < brickRowCount; r++) {
+      if (bricks[c][r].status === 1) {
+        var brickX = c * (brickWidth + brickPadding) + brickOffsetLeft
+        var brickY = r * (brickHeight + brickPadding) + brickOffsetTop
+        bricks[c][r].x = brickX
+        bricks[c][r].y = brickY
+        ctx.beginPath()
+        ctx.rect(brickX, brickY, brickWidth, brickHeight)
+        ctx.fillStyle = color1
+        ctx.fill()
+        ctx.closePath()
+      }
+    }
+  }
+}
+
+function drawBall () {
+  ctx.drawImage(ballImg, x, y, ballRadius * 2, ballRadius * 2)
+}
+
+function drawPaddle () {
+  if (rightPressed && ((paddleX + paddleWidth) < canvas.width)) {
+    paddleX += paddleSpeed
+  } else if (leftPressed && paddleX > 0) {
+    paddleX -= paddleSpeed
+  }
+
+  ctx.drawImage(paddleImg, paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight)
+}
+
+function drawScore() {
+  ctx.font = "16px Arial"
+  ctx.fillStyle = color1
+  ctx.fillText("Score: " + score, 8, 20)
+}
+
+function drawLevel() {
+  ctx.font = "16px Arial"
+  ctx.fillStyle = color1
+  ctx.fillText("Level: " + level, canvas.width / 2, 20)
+}
+
+function drawLives() {
+  ctx.font = "16px Arial"
+  ctx.fillStyle = color1
+  ctx.fillText("lives: " + lives, canvas.width - 65, 20)
+}
+
+function collideWallsPaddle () {
+  // left/right
+  if (y + dy < ballRadius) {
+    dy = -dy
+  }
+  // top
+  if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
+    dx = -dx
+  }
+
+  // bottom
+  if (y + dy > canvas.height - ballRadius) {
+    loseLife()
+  }
+
+  // paddle
+	if (y > canvas.height - paddleHeight - paddleBottomMargin) {
+		// top
+  	if (x > paddleX && x < paddleX + paddleWidth) {
+    	dy = -dy
+    	collideX = paddleX + paddleWidth - x
+    	if (dx > 0)
+    		dx = ballSpeed - (collideX / 70)
+    	else
+    		dx = -ballSpeed + ((paddleWidth - collideX )/ 70)
+		}
+	}
+}
+
+function collideBricks () {
+  for (var c = 0; c < brickColumnCount; c++) {
+    for (var r = 0; r < brickRowCount; r++) {
+      var b = bricks[c][r]
+      if (b.status === 1) {
+      	if (x < b.x + brickWidth &&
+      			x + ballRadius * 2  > b.x &&
+      			y < b.y + brickHeight &&
+      			y + ballRadius * 2 > b.y) {
+          dy = -dy
+          b.status = 0
+          score += 100
+          bricksLeft--
+          if (bricksLeft == 0) {
+          	// alert ('You win!')
+          	// document.location.reload()
+          	start()
+          }
+        }
+      }
+    }
+  }
+}
+
+function update () {
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  drawBricks()
+  drawBall()
+  drawPaddle()
+  drawScore()
+  drawLevel()
+  drawLives()
+  collideWallsPaddle()
+  collideBricks()
+  x += dx
+  y += dy
+  if (playing) {
+  	requestAnimationFrame(update)
+  }
+}
+
+var sequence = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]
+var i = 0
+document.onkeydown = function (e) {
+  if (e.keyCode === sequence[i]) {
+    i++
+  } else {
+    i = 0
+  }
+
+  if (i === sequence.length) {
+    init()
+  }
+}
+
+</script>
