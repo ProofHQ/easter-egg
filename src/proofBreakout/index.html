@@ -1,3 +1,4 @@
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
 <script src="https://www.gstatic.com/firebasejs/5.5.7/firebase.js"></script>
 <script>
   // Initialize Firebase
@@ -12,7 +13,12 @@
   firebase.initializeApp(config);
 </script>
 
-<div id="leaderboard"></div>
+<div id="leaderboard">
+  <div>Scores</div>
+  <div v-for="(score, name, index) in scores">
+    {{index + 1}}. {{score.score}} {{name}}
+  </div>
+</div>
 
 <script>
 const VERSION = '1.2.1'
@@ -287,12 +293,12 @@ async function getStats () {
   try {
     let snap = await firebase.database().ref('breakout/stats').orderByChild('score').limitToFirst(10).once('value')
     const scores = snap.val()
-    let leaderboard = document.getElementById('leaderboard')
-    let output = ''
-    for (let i in scores) {
-      output = `${output}<li>${i}: ${scores[i].score}</li>`
-    }
-    leaderboard.innerHTML = `<ul>${output}</ul>`
+    let leaderboard = new Vue({
+      el: '#leaderboard',
+      data: {
+        scores
+      }
+    })
   } catch (e) { }
 }
 
@@ -333,5 +339,6 @@ body {
   border-radius: 5px;
   display: inline-block;
   min-width: 200px;
+  padding: 10px;
 }
 </style>
