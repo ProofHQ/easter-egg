@@ -13,8 +13,6 @@
 </script>
 
 <div id="leaderboard"></div>
-<div id="prompt"></div>
-<style>#proof-party{background:rgba(220,220,220, .5);display: none;left: 0px;position: fixed;top: 0px;z-index: 99999999;background}</style>
 
 <script>
 const VERSION = '1.2.1'
@@ -80,6 +78,7 @@ function init () {
 }
 
 function start () {
+  document.getElementById('leaderboard').setAttribute('style', 'display: none')
 	gameState.level++
 	gameState.ballSpeed = gameState.initBallSpeed + (gameState.level / 2)
 	resetBall()
@@ -88,6 +87,7 @@ function start () {
 }
 
 function stop () {
+  document.getElementById('leaderboard').setAttribute('style', 'display: block')
   gameState.playing = false
   alert (`Game over.\nYour score is ${gameState.score}`)
 	document.location.reload()
@@ -285,8 +285,14 @@ function update () {
 // get leaderboard data
 async function getStats () {
   try {
-    let snap = await firebase.database().ref('breakout/stats').orderByChild('score').once('value')
-
+    let snap = await firebase.database().ref('breakout/stats').orderByChild('score').limitToFirst(10).once('value')
+    const scores = snap.val()
+    let leaderboard = document.getElementById('leaderboard')
+    let output = ''
+    for (let i in scores) {
+      output = `${output}<li>${i}: ${scores[i].score}</li>`
+    }
+    leaderboard.innerHTML = `<ul>${output}</ul>`
   } catch (e) { }
 }
 
@@ -318,7 +324,12 @@ getStats()
 </script>
 
 <style>
-#prompt {
-  display: none;
+body {
+  font-family: Arial;
+}
+#leaderboard {
+  background: white;
+  border: 1px solid #0095f7;
+  border-radius: 5px;
 }
 </style>
