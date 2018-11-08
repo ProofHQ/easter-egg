@@ -1,46 +1,59 @@
+<script src="https://www.gstatic.com/firebasejs/5.5.7/firebase.js"></script>
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyAwJ0Srp3JlGL-uAy3cWEOdvh5FkYp40sA",
+    authDomain: "proof-games.firebaseapp.com",
+    databaseURL: "https://proof-games.firebaseio.com",
+    projectId: "proof-games",
+    storageBucket: "proof-games.appspot.com",
+    messagingSenderId: "292429197616"
+  };
+  firebase.initializeApp(config);
+</script>
+
 <canvas id="proof-party"></canvas>
 <style>#proof-party{background:rgba(220,220,220, .5);display: none;left: 0px;position: fixed;top: 0px;z-index: 99999999;background}</style>
 
 <script>
-var VERSION = '1.2.1'
-var canvas
-var ctx
+let VERSION = '1.2.1'
+let canvas
+let ctx
 
-var playing = false
+let playing = false
 
-var x
-var y
-var dx
-var dy
-var ballRadius = 17
-var initBallSpeed = 5
-var ballSpeed
-var ballImg = new Image()
+let x
+let y
+let dx
+let dy
+let ballRadius = 17
+let initBallSpeed = 5
+let ballSpeed
+let ballImg = new Image()
 
+let paddleHeight = 55
+let paddleWidth = 230
+let paddleX
+let paddleBottomMargin = 30
+let paddleSpeed = 7.5
+let paddleImg = new Image()
 
-var paddleHeight = 55
-var paddleWidth = 230
-var paddleX
-var paddleBottomMargin = 30
-var paddleSpeed = 7.5
-var paddleImg = new Image()
+let rightPressed = false
+let leftPressed = false
 
-var rightPressed = false
-var leftPressed = false
+let bricks = []
+let brickRowCount = 7
+let brickColumnCount = 12
+let brickWidth
+let brickHeight
+let brickPadding = 20
+let brickOffsetTop = 100
+let brickOffsetLeft = 50
 
-var bricks = []
-var brickRowCount = 7
-var brickColumnCount = 12
-var brickWidth
-var brickHeight
-var brickPadding = 20
-var brickOffsetTop = 100
-var brickOffsetLeft = 50
-
-var bricksLeft
-var level = 0
-var score = 0
-var lives = 2
+let bricksLeft
+let level = 0
+let score = 0
+let lives = 2
 
 color1 = '#0095f7'
 
@@ -95,11 +108,13 @@ function loseLife () {
 	}
 }
 
+// end the game
 function end () {
   stop()
   canvas.remove()
 }
 
+// bind keypresses
 function registerKeys () {
   // disable arrow key scrolling
   window.addEventListener('keydown', function (e) {
@@ -132,22 +147,24 @@ function keyUpHandler (e) {
   }
 }
 
+// generate all of the brick positions
 function setupBricks () {
-  for (var c = 0; c < brickColumnCount; c++) {
+  for (let c = 0; c < brickColumnCount; c++) {
     bricks[c] = []
-    for (var r = 0; r < brickRowCount; r++) {
+    for (let r = 0; r < brickRowCount; r++) {
       bricks[c][r] = {x: 0, y: 0, status: 1}
     }
   }
   bricksLeft = brickRowCount * brickColumnCount
 }
 
+// draw all of the bricks
 function drawBricks () {
-  for (var c = 0; c < brickColumnCount; c++) {
-    for (var r = 0; r < brickRowCount; r++) {
+  for (let c = 0; c < brickColumnCount; c++) {
+    for (let r = 0; r < brickRowCount; r++) {
       if (bricks[c][r].status === 1) {
-        var brickX = c * (brickWidth + brickPadding) + brickOffsetLeft
-        var brickY = r * (brickHeight + brickPadding) + brickOffsetTop
+        let brickX = c * (brickWidth + brickPadding) + brickOffsetLeft
+        let brickY = r * (brickHeight + brickPadding) + brickOffsetTop
         bricks[c][r].x = brickX
         bricks[c][r].y = brickY
         ctx.beginPath()
@@ -192,6 +209,7 @@ function drawLives() {
   ctx.fillText("lives: " + lives, canvas.width - 65, 20)
 }
 
+// check collisions between the walls and paddle
 function collideWallsPaddle () {
   // left/right
   if (y + dy < ballRadius) {
@@ -221,10 +239,11 @@ function collideWallsPaddle () {
 	}
 }
 
+// check collisions with bricks and ball
 function collideBricks () {
-  for (var c = 0; c < brickColumnCount; c++) {
-    for (var r = 0; r < brickRowCount; r++) {
-      var b = bricks[c][r]
+  for (let c = 0; c < brickColumnCount; c++) {
+    for (let r = 0; r < brickRowCount; r++) {
+      let b = bricks[c][r]
       if (b.status === 1) {
       	if (x < b.x + brickWidth &&
       			x + ballRadius * 2  > b.x &&
@@ -262,8 +281,9 @@ function update () {
   }
 }
 
-var sequence = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]
-var i = 0
+// up, up down, down, left, right, left, right, b, a
+const sequence = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]
+let i = 0
 document.onkeydown = function (e) {
   if (e.keyCode === sequence[i]) {
     i++
