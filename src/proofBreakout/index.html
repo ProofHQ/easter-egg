@@ -12,7 +12,8 @@
   firebase.initializeApp(config);
 </script>
 
-<canvas id="proof-party"></canvas>
+<div id="leaderboard"></div>
+<div id="prompt"></div>
 <style>#proof-party{background:rgba(220,220,220, .5);display: none;left: 0px;position: fixed;top: 0px;z-index: 99999999;background}</style>
 
 <script>
@@ -59,10 +60,11 @@ color1 = '#0095f7'
 
 function init () {
 	console.log(VERSION)
-  canvas = document.getElementById('proof-party')
+  canvas = document.createElement('canvas')
   canvas.height = window.innerHeight - 20
   canvas.width = window.innerWidth - 20
   canvas.style.display = 'block'
+  document.body.append(canvas)
   ctx = canvas.getContext('2d')
 
   ballImg.src = 'https://uploads-ssl.webflow.com/5a8b5a2ff8eb19000164d5e7/5a95e3c60f177000014a6b83_ball.png'
@@ -274,11 +276,26 @@ function update () {
   drawLives()
   collideWallsPaddle()
   collideBricks()
-  x += dx
-  y += dy
   if (playing) {
+    x += dx
+    y += dy
   	requestAnimationFrame(update)
   }
+}
+
+// get leaderboard data
+async function getStats () {
+  try {
+    let snap = await firebase.database().ref('breakout/stats').orderByChild('score').once('value')
+
+  } catch (e) { }
+}
+
+// add a score to the leaderboard
+async function addScore (name, score) {
+  try {
+    await firebase.database().ref('/breakout/stats').child(name).set({ score })
+  } catch (e) { }
 }
 
 // up, up down, down, left, right, left, right, b, a
@@ -296,4 +313,13 @@ document.onkeydown = function (e) {
   }
 }
 
+// addScore('someone', 50)
+getStats()
+
 </script>
+
+<style>
+#prompt {
+  display: none;
+}
+</style>
