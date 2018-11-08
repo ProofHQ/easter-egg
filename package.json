@@ -1,0 +1,22 @@
+{
+  "name": "easter-egg",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ProofHQ/easter-egg.git"
+  },
+  "author": "Ben Grimes",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ProofHQ/easter-egg/issues"
+  },
+  "homepage": "https://github.com/ProofHQ/easter-egg#readme",
+  "dependencies": {
+    "express": "^4.16.4"
+  }
+}
