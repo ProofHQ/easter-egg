@@ -17,46 +17,45 @@
 <style>#proof-party{background:rgba(220,220,220, .5);display: none;left: 0px;position: fixed;top: 0px;z-index: 99999999;background}</style>
 
 <script>
-let VERSION = '1.2.1'
+const VERSION = '1.2.1'
+const color1 = '#0095f7'
 let canvas
 let ctx
+let gameState = initialState()
 
-let playing = false
-
-let x
-let y
-let dx
-let dy
-let ballRadius = 17
-let initBallSpeed = 5
-let ballSpeed
-let ballImg = new Image()
-
-let paddleHeight = 55
-let paddleWidth = 230
-let paddleX
-let paddleBottomMargin = 30
-let paddleSpeed = 7.5
-let paddleImg = new Image()
-
-let rightPressed = false
-let leftPressed = false
-
-let bricks = []
-let brickRowCount = 7
-let brickColumnCount = 12
-let brickWidth
-let brickHeight
-let brickPadding = 20
-let brickOffsetTop = 100
-let brickOffsetLeft = 50
-
-let bricksLeft
-let level = 0
-let score = 0
-let lives = 2
-
-color1 = '#0095f7'
+function initialState () {
+  return {
+    playing: false,
+    x: null,
+    y: null,
+    dx: null,
+    dy: null,
+    ballRadius: 17,
+    initBallSpeed: 5,
+    ballSpeed: null,
+    ballImg: new Image(),
+    paddleHeight: 55,
+    paddleWidth: 230,
+    paddleX: null,
+    paddleBottomMargin: 30,
+    paddleSpeed: 7.5,
+    paddleImg: new Image(),
+    rightPressed: false,
+    leftPressed: false,
+    bricks: [],
+    brickRowCount: 7,
+    brickColumnCount: 12,
+    brickWidth: null,
+    brickHeight: null,
+    brickPadding: 20,
+    brickOffsetTop: 100,
+    brickOffsetLeft: 50,
+    bricksLeft: null,
+    level: 0,
+    score: 0,
+    lives: 2
+  }
+}
 
 function init () {
 	console.log(VERSION)
@@ -67,13 +66,13 @@ function init () {
   document.body.append(canvas)
   ctx = canvas.getContext('2d')
 
-  ballImg.src = 'https://uploads-ssl.webflow.com/5a8b5a2ff8eb19000164d5e7/5a95e3c60f177000014a6b83_ball.png'
-  paddleImg.src = 'https://uploads-ssl.webflow.com/5a8b5a2ff8eb19000164d5e7/5a9614b341e04900018aaa4c_highScore.png'
+  gameState.ballImg.src = 'https://uploads-ssl.webflow.com/5a8b5a2ff8eb19000164d5e7/5a95e3c60f177000014a6b83_ball.png'
+  gameState.paddleImg.src = 'https://uploads-ssl.webflow.com/5a8b5a2ff8eb19000164d5e7/5a9614b341e04900018aaa4c_highScore.png'
 
-  paddleX = (canvas.width - paddleWidth) / 2
+  gameState.paddleX = (canvas.width - gameState.paddleWidth) / 2
 
-  brickHeight = canvas.height / 40
-  brickWidth = canvas.width / brickColumnCount - brickPadding - (brickOffsetLeft * 2 / brickColumnCount)
+  gameState.brickHeight = canvas.height / 40
+  gameState.brickWidth = canvas.width / gameState.brickColumnCount - gameState.brickPadding - (gameState.brickOffsetLeft * 2 / gameState.brickColumnCount)
 
   registerKeys()
   start()
@@ -81,29 +80,29 @@ function init () {
 }
 
 function start () {
-	level++
-	ballSpeed = initBallSpeed + (level / 2)
+	gameState.level++
+	gameState.ballSpeed = gameState.initBallSpeed + (gameState.level / 2)
 	resetBall()
   setupBricks()
-  playing = true
+  gameState.playing = true
 }
 
 function stop () {
-  playing = false
-  alert (`Game over.\nYour score is ${score}`)
+  gameState.playing = false
+  alert (`Game over.\nYour score is ${gameState.score}`)
 	document.location.reload()
 }
 
 function resetBall () {
-	x = canvas.width / 2
-  y = canvas.height - paddleHeight - paddleBottomMargin - 5
-  dx = ballSpeed
-	dy = -ballSpeed
-	paddleX = (canvas.width-paddleWidth) / 2;
+	gameState.x = canvas.width / 2
+  gameState.y = canvas.height - gameState.paddleHeight - gameState.paddleBottomMargin - 5
+  gameState.dx = gameState.ballSpeed
+	gameState.dy = -gameState.ballSpeed
+	gameState.paddleX = (canvas.width - gameState.paddleWidth) / 2;
 }
 
 function loseLife () {
-	if(lives-- == 0) {
+	if(gameState.lives-- == 0) {
 		stop()
 	} else {
 		resetBall()
@@ -132,9 +131,9 @@ function registerKeys () {
 
 function keyDownHandler (e) {
   if (e.keyCode === 39) {
-    rightPressed = true
+    gameState.rightPressed = true
   } else if (e.keyCode === 37) {
-    leftPressed = true
+    gameState.leftPressed = true
   } else if (e.keyCode === 27) {
   	// press esc
     stop()
@@ -143,34 +142,34 @@ function keyDownHandler (e) {
 
 function keyUpHandler (e) {
   if (e.keyCode === 39) {
-    rightPressed = false
+    gameState.rightPressed = false
   } else if (e.keyCode === 37) {
-    leftPressed = false
+    gameState.leftPressed = false
   }
 }
 
 // generate all of the brick positions
 function setupBricks () {
-  for (let c = 0; c < brickColumnCount; c++) {
-    bricks[c] = []
-    for (let r = 0; r < brickRowCount; r++) {
-      bricks[c][r] = {x: 0, y: 0, status: 1}
+  for (let c = 0; c < gameState.brickColumnCount; c++) {
+    gameState.bricks[c] = []
+    for (let r = 0; r < gameState.brickRowCount; r++) {
+      gameState.bricks[c][r] = {x: 0, y: 0, status: 1}
     }
   }
-  bricksLeft = brickRowCount * brickColumnCount
+  gameState.bricksLeft = gameState.brickRowCount * gameState.brickColumnCount
 }
 
 // draw all of the bricks
 function drawBricks () {
-  for (let c = 0; c < brickColumnCount; c++) {
-    for (let r = 0; r < brickRowCount; r++) {
-      if (bricks[c][r].status === 1) {
-        let brickX = c * (brickWidth + brickPadding) + brickOffsetLeft
-        let brickY = r * (brickHeight + brickPadding) + brickOffsetTop
-        bricks[c][r].x = brickX
-        bricks[c][r].y = brickY
+  for (let c = 0; c < gameState.brickColumnCount; c++) {
+    for (let r = 0; r < gameState.brickRowCount; r++) {
+      if (gameState.bricks[c][r].status === 1) {
+        let brickX = c * (gameState.brickWidth + gameState.brickPadding) + gameState.brickOffsetLeft
+        let brickY = r * (gameState.brickHeight + gameState.brickPadding) + gameState.brickOffsetTop
+        gameState.bricks[c][r].x = brickX
+        gameState.bricks[c][r].y = brickY
         ctx.beginPath()
-        ctx.rect(brickX, brickY, brickWidth, brickHeight)
+        ctx.rect(brickX, brickY, gameState.brickWidth, gameState.brickHeight)
         ctx.fillStyle = color1
         ctx.fill()
         ctx.closePath()
@@ -180,82 +179,82 @@ function drawBricks () {
 }
 
 function drawBall () {
-  ctx.drawImage(ballImg, x, y, ballRadius * 2, ballRadius * 2)
+  ctx.drawImage(gameState.ballImg, gameState.x, gameState.y, gameState.ballRadius * 2, gameState.ballRadius * 2)
 }
 
 function drawPaddle () {
-  if (rightPressed && ((paddleX + paddleWidth) < canvas.width)) {
-    paddleX += paddleSpeed
-  } else if (leftPressed && paddleX > 0) {
-    paddleX -= paddleSpeed
+  if (gameState.rightPressed && ((gameState.paddleX + gameState.paddleWidth) < canvas.width)) {
+    gameState.paddleX += gameState.paddleSpeed
+  } else if (gameState.leftPressed && gameState.paddleX > 0) {
+    gameState.paddleX -= gameState.paddleSpeed
   }
 
-  ctx.drawImage(paddleImg, paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight)
+  ctx.drawImage(gameState.paddleImg, gameState.paddleX, canvas.height - gameState.paddleHeight, gameState.paddleWidth, gameState.paddleHeight)
 }
 
 function drawScore() {
   ctx.font = "16px Arial"
   ctx.fillStyle = color1
-  ctx.fillText("Score: " + score, 8, 20)
+  ctx.fillText("Score: " + gameState.score, 8, 20)
 }
 
 function drawLevel() {
   ctx.font = "16px Arial"
   ctx.fillStyle = color1
-  ctx.fillText("Level: " + level, canvas.width / 2, 20)
+  ctx.fillText("Level: " + gameState.level, canvas.width / 2, 20)
 }
 
 function drawLives() {
   ctx.font = "16px Arial"
   ctx.fillStyle = color1
-  ctx.fillText("lives: " + lives, canvas.width - 65, 20)
+  ctx.fillText("lives: " + gameState.lives, canvas.width - 65, 20)
 }
 
 // check collisions between the walls and paddle
 function collideWallsPaddle () {
   // left/right
-  if (y + dy < ballRadius) {
-    dy = -dy
+  if (gameState.y + gameState.dy < gameState.ballRadius) {
+    gameState.dy = -gameState.dy
   }
   // top
-  if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
-    dx = -dx
+  if (gameState.x + gameState.dx > canvas.width - gameState.ballRadius || gameState.x + gameState.dx < gameState.ballRadius) {
+    gameState.dx = -gameState.dx
   }
 
   // bottom
-  if (y + dy > canvas.height - ballRadius) {
+  if (gameState.y + gameState.dy > canvas.height - gameState.ballRadius) {
     loseLife()
   }
 
   // paddle
-	if (y > canvas.height - paddleHeight - paddleBottomMargin) {
+	if (gameState.y > canvas.height - gameState.paddleHeight - gameState.paddleBottomMargin) {
 		// top
-  	if (x > paddleX && x < paddleX + paddleWidth) {
-    	dy = -dy
-    	collideX = paddleX + paddleWidth - x
-    	if (dx > 0)
-    		dx = ballSpeed - (collideX / 70)
+  	if (gameState.x > gameState.paddleX && gameState.x < gameState.paddleX + gameState.paddleWidth) {
+    	gameState.dy = -gameState.dy
+    	gameState.collideX = gameState.paddleX + gameState.paddleWidth - gameState.x
+    	if (gameState.dx > 0)
+        gameState.dx = gameState.ballSpeed - (gameState.collideX / 70)
     	else
-    		dx = -ballSpeed + ((paddleWidth - collideX )/ 70)
+        gameState.dx = -gameState.ballSpeed + ((gameState.paddleWidth - gameState.collideX )/ 70)
 		}
 	}
 }
 
 // check collisions with bricks and ball
 function collideBricks () {
-  for (let c = 0; c < brickColumnCount; c++) {
-    for (let r = 0; r < brickRowCount; r++) {
-      let b = bricks[c][r]
+  for (let c = 0; c < gameState.brickColumnCount; c++) {
+    for (let r = 0; r < gameState.brickRowCount; r++) {
+      let b = gameState.bricks[c][r]
       if (b.status === 1) {
-      	if (x < b.x + brickWidth &&
-      			x + ballRadius * 2  > b.x &&
-      			y < b.y + brickHeight &&
-      			y + ballRadius * 2 > b.y) {
-          dy = -dy
+        if (gameState.x < b.x + gameState.brickWidth &&
+          gameState.x + gameState.ballRadius * 2  > b.x &&
+          gameState.y < b.y + gameState.brickHeight &&
+          gameState.y + gameState.ballRadius * 2 > b.y) {
+          gameState.dy = -gameState.dy
           b.status = 0
-          score += 100
-          bricksLeft--
-          if (bricksLeft == 0) {
+          gameState.score += 100
+          gameState.bricksLeft--
+          if (gameState.bricksLeft == 0) {
           	// alert ('You win!')
           	// document.location.reload()
           	start()
@@ -276,9 +275,9 @@ function update () {
   drawLives()
   collideWallsPaddle()
   collideBricks()
-  if (playing) {
-    x += dx
-    y += dy
+  if (gameState.playing) {
+    gameState.x += gameState.dx
+    gameState.y += gameState.dy
   	requestAnimationFrame(update)
   }
 }
